@@ -39,4 +39,8 @@ pub mod ticketing {
     pub fn cancel_event(ctx: Context<CancelEvent>) -> Result<()> {
         cancel_event::handler(ctx)
     }
+
+    pub fn transfer_ticket(ctx: Context<TransferTicket>) -> Result<()> {
+        transfer_ticket::handler(ctx)
+    }
 }

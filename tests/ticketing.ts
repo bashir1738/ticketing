@@ -1,7 +1,7 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
 import { expect } from "chai";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { Ticketing } from "../target/types/ticketing";
 
 describe("ticketing", () => {
@@ -66,6 +66,45 @@ describe("ticketing", () => {
       expect.fail("a ticket cannot be checked in twice");
     } catch (error) {
       expect(String(error)).to.contain("TicketAlreadyUsed");
+    }
+  });
+
+  it("allows only the current owner to transfer an unused ticket", async () => {
+    const recipient = Keypair.generate();
+    const attacker = Keypair.generate();
+
+    await program.methods
+      .buyTicket(1)
+      .accountsPartial({ buyer: organizer, event: eventPda, ticket: ticketPda(1), organizer, systemProgram: SystemProgram.programId })
+      .rpc();
+
+    await program.methods
+      .transferTicket()
+      .accountsPartial({
+        owner: organizer,
+        event: eventPda,
+        ticket: ticketPda(1),
+        newOwner: recipient.publicKey,
+      })
+      .rpc();
+
+    const transferredTicket = await program.account.ticket.fetch(ticketPda(1));
+    expect(transferredTicket.owner.toBase58()).to.equal(recipient.publicKey.toBase58());
+
+    try {
+      await program.methods
+        .transferTicket()
+        .accountsPartial({
+          owner: attacker.publicKey,
+          event: eventPda,
+          ticket: ticketPda(1),
+          newOwner: organizer,
+        })
+        .signers([attacker])
+        .rpc();
+      expect.fail("an unrelated signer cannot transfer a ticket");
+    } catch (error) {
+      expect(String(error)).to.contain("UnauthorizedTicketOwner");
     }
   });
 

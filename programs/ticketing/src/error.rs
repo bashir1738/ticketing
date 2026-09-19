@@ -28,4 +28,8 @@ pub enum ErrorCode {
     InvalidTicketEvent,
     #[msg("Only the event organizer can perform this action")]
     UnauthorizedOrganizer,
+    #[msg("Only the current ticket owner can transfer this ticket")]
+    UnauthorizedTicketOwner,
+    #[msg("The ticket recipient must be different from the current owner")]
+    InvalidTicketRecipient,
 }
