@@ -20,7 +20,7 @@ pub struct BuyTicket<'info> {
     /// CHECK: This address is constrained to the organizer stored in the event.
     #[account(mut, address = event.organizer)]
     pub organizer: UncheckedAccount<'info>,
-    pub system_program: Program<'info, System>,
+    pub system_program: Program<'info, System>, 
 }
 
 pub fn handler(ctx: Context<BuyTicket>, ticket_number: u32) -> Result<()> {
